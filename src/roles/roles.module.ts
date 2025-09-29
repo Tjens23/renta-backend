@@ -1,16 +1,17 @@
 import { Module, forwardRef } from '@nestjs/common';
-import { UsersService } from './users.service';
-import { AdminUsersController } from './admin-users.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from 'src/entities/User';
-import { Role } from 'src/entities/Role';
+import { Role } from '../entities/Role';
+import { Permission } from '../entities/Permission';
+import { RolesService } from './roles.service';
+import { RolesController } from './roles.controller';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from '../auth/auth.module';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Role]),
+    TypeOrmModule.forFeature([Role, Permission]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
@@ -20,9 +21,10 @@ import { AuthModule } from '../auth/auth.module';
       inject: [ConfigService],
     }),
     forwardRef(() => AuthModule),
+    forwardRef(() => UsersModule),
   ],
-  providers: [UsersService],
-  controllers: [AdminUsersController],
-  exports: [UsersService],
+  providers: [RolesService],
+  controllers: [RolesController],
+  exports: [RolesService],
 })
-export class UsersModule {}
+export class RolesModule {}
