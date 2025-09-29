@@ -5,6 +5,8 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { ConfigModule } from '@nestjs/config';
 import configurations from './config/configurations';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { User } from './entities/User';
 
 @Module({
   imports: [
@@ -14,6 +16,16 @@ import configurations from './config/configurations';
       isGlobal: true,
       envFilePath: '.env',
       load: [configurations],
+    }),
+    TypeOrmModule.forRoot({
+      type: 'postgres',
+      host: 'localhost',
+      port: 5432,
+      username: 'postgres',
+      password: 'Hyg57aff',
+      database: 'renta',
+      entities: [User],
+      synchronize: true,
     }),
   ],
   controllers: [AppController],
