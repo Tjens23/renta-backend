@@ -121,13 +121,3 @@ if (adminRoutes.some((route) => currentRoute.startsWith(route))) {
   }
 }
 ```
-
-## 🚨 Security Notes
-
-1. **Regular users have NO admin access** - They can only view their own profile
-2. **All admin endpoints require specific permissions** - Not just authentication
-3. **Role-based AND permission-based guards** - Double layer of security
-4. **JWT tokens don't grant admin access** - Must have proper role/permissions
-5. **Frontend should hide admin UI** - But backend enforces the security
-
-This ensures your admin panel is completely secure from regular users! 🔒
