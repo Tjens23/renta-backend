@@ -153,6 +153,12 @@ export class RolesService {
         action: 'read',
         description: 'View admin dashboard',
       },
+      {
+        name: 'view_profile',
+        resource: 'profile',
+        action: 'read',
+        description: 'View own profile',
+      },
     ];
 
     for (const permData of permissions) {
@@ -182,12 +188,13 @@ export class RolesService {
 
     const userRole = await this.findByName('user');
     if (!userRole) {
+      // Regular users only get profile viewing permission - NO admin dashboard access
       const userPermissions = await this.permissionsRepository.find({
-        where: { name: 'view_dashboard' },
+        where: { name: 'view_profile' },
       });
       await this.createRole(
         'user',
-        'Regular user with limited access',
+        'Regular user with basic access - no admin panel',
         userPermissions.map((p) => p.id),
       );
     }
