@@ -5,12 +5,15 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { RolesModule } from './roles/roles.module';
 import { AdminModule } from './admin/admin.module';
+import { CarsModule } from './cars/cars.module';
 import { ConfigModule } from '@nestjs/config';
 import configurations from './config/configurations';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/User';
 import { Role } from './entities/Role';
 import { Permission } from './entities/Permission';
+import { Car } from './entities/Car';
+import { CarOwner } from './entities/CarOwner';
 
 @Module({
   imports: [
@@ -18,6 +21,7 @@ import { Permission } from './entities/Permission';
     UsersModule,
     RolesModule,
     AdminModule,
+    CarsModule,
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
@@ -30,7 +34,7 @@ import { Permission } from './entities/Permission';
       username: 'postgres',
       password: 'Hyg57aff',
       database: 'renta',
-      entities: [User, Role, Permission],
+      entities: [User, Role, Permission, Car, CarOwner],
       synchronize: true,
     }),
   ],
