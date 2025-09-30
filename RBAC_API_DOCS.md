@@ -265,11 +265,3 @@ For your admin panel frontend, you'll typically need:
 - **404 Not Found** - Resource not found
 - **400 Bad Request** - Invalid request data
 
-## Security Notes
-
-- All passwords are hashed using bcrypt
-- JWT tokens have configurable expiration
-- Role and permission checks are enforced at the guard level
-- Users can have multiple roles
-- Roles can have multiple permissions
-- Default admin role has all permissions
