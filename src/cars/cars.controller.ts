@@ -24,6 +24,20 @@ export class CarsController {
     return this.carsService.create(createCarDto);
   }
 
+  /**
+   * Get all cars with optional filtering and sorting
+   * Supports multiple values for carTypes, makes, and fuelTypes using comma-separated strings
+   *
+   * Query parameters:
+   * - carTypes: Comma-separated list of car types (e.g., "SUV,Van,Truck")
+   * - makes: Comma-separated list of car makes (e.g., "Toyota,BMW,Audi")
+   * - fuelTypes: Comma-separated list of fuel types (e.g., "Electric,Hybrid")
+   * - sort: Sorting option - "Cheapest", "Closest", or "Rating"
+   * - userLat/userLng: User's coordinates for "Closest" sorting
+   *
+   * Legacy single-value parameters are still supported for backward compatibility:
+   * - carType, make, fuelType
+   */
   @Get()
   findAll(@Query() filters: CarFilterDto) {
     return this.carsService.findAll(filters);

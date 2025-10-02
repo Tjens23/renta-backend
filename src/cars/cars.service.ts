@@ -42,14 +42,31 @@ export class CarsService {
         });
       }
 
-      if (filters.carType) {
+      // Handle multiple car types or single car type (for backward compatibility)
+      if (filters.carTypes && filters.carTypes.length > 0) {
+        query.andWhere('car.carType IN (:...carTypes)', {
+          carTypes: filters.carTypes,
+        });
+      } else if (filters.carType) {
         query.andWhere('car.carType = :carType', { carType: filters.carType });
       }
 
-      if (filters.fuelType) {
+      // Handle multiple fuel types or single fuel type (for backward compatibility)
+      if (filters.fuelTypes && filters.fuelTypes.length > 0) {
+        query.andWhere('car.fuelType IN (:...fuelTypes)', {
+          fuelTypes: filters.fuelTypes,
+        });
+      } else if (filters.fuelType) {
         query.andWhere('car.fuelType = :fuelType', {
           fuelType: filters.fuelType,
         });
+      }
+
+      // Handle multiple makes or single make (for backward compatibility)
+      if (filters.makes && filters.makes.length > 0) {
+        query.andWhere('car.make IN (:...makes)', { makes: filters.makes });
+      } else if (filters.make) {
+        query.andWhere('car.make = :make', { make: filters.make });
       }
 
       if (filters.transmission) {
@@ -86,6 +103,48 @@ export class CarsService {
         query.andWhere('car.isAvailable = :isAvailable', {
           isAvailable: filters.isAvailable,
         });
+      }
+
+      // Handle sorting
+      if (filters.sort) {
+        switch (filters.sort) {
+          case 'Cheapest':
+            query.orderBy('car.pricePerKm', 'ASC');
+            break;
+          case 'Rating':
+            // Add rating field to Car entity if not exists, for now order by creation date
+            query.orderBy('car.createdAt', 'DESC');
+            break;
+          case 'Closest':
+            // For closest sorting, we need user's location
+            if (filters.userLat && filters.userLng) {
+              // Using Haversine formula for distance calculation
+              query
+                .setParameters({
+                  userLat: filters.userLat,
+                  userLng: filters.userLng,
+                })
+                .addSelect(
+                  `
+                (6371 * acos(
+                  cos(radians(:userLat)) * cos(radians(car.latitude)) * 
+                  cos(radians(car.longitude) - radians(:userLng)) + 
+                  sin(radians(:userLat)) * sin(radians(car.latitude))
+                )) AS distance
+              `,
+                )
+                .orderBy('distance', 'ASC');
+            } else {
+              // Fallback to default ordering if no user location provided
+              query.orderBy('car.createdAt', 'DESC');
+            }
+            break;
+          default:
+            query.orderBy('car.createdAt', 'DESC');
+        }
+      } else {
+        // Default ordering
+        query.orderBy('car.createdAt', 'DESC');
       }
     }
 

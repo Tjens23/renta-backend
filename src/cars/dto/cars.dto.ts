@@ -4,9 +4,19 @@ import {
   IsEnum,
   IsOptional,
   IsBoolean,
+  IsArray,
   Min,
   Max,
 } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
+
+// Helper function to transform comma-separated string to array
+const transformStringToArray = ({ value }: { value: string }) => {
+  if (typeof value === 'string') {
+    return value.split(',').map((item) => item.trim());
+  }
+  return value;
+};
 
 export class CreateCarDto {
   @IsString()
@@ -26,6 +36,20 @@ export class CreateCarDto {
 
   @IsString()
   location: string;
+
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  @Min(-90)
+  @Max(90)
+  latitude?: number;
+
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  @Min(-180)
+  @Max(180)
+  longitude?: number;
 
   @IsString()
   @IsOptional()
@@ -77,6 +101,20 @@ export class UpdateCarDto {
   @IsOptional()
   location?: string;
 
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  @Min(-90)
+  @Max(90)
+  latitude?: number;
+
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  @Min(-180)
+  @Max(180)
+  longitude?: number;
+
   @IsString()
   @IsOptional()
   imageUrl?: string;
@@ -113,6 +151,75 @@ export class CarFilterDto {
   @IsOptional()
   location?: string;
 
+  // Support for multiple car types
+  @Transform(transformStringToArray)
+  @IsArray()
+  @IsEnum(['Micro Car', 'Medium', 'SUV', 'Mini Bus', 'Truck', 'Van'], {
+    each: true,
+  })
+  @IsOptional()
+  carTypes?: ('Micro Car' | 'Medium' | 'SUV' | 'Mini Bus' | 'Truck' | 'Van')[];
+
+  // Support for multiple makes
+  @Transform(transformStringToArray)
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  makes?: string[];
+
+  // Support for multiple fuel types
+  @Transform(transformStringToArray)
+  @IsArray()
+  @IsEnum(['Electric', 'Petrol', 'Diesel', 'Hybrid'], { each: true })
+  @IsOptional()
+  fuelTypes?: ('Electric' | 'Petrol' | 'Diesel' | 'Hybrid')[];
+
+  @IsEnum(['Automatic', 'Manual'])
+  @IsOptional()
+  transmission?: 'Automatic' | 'Manual';
+
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  minSeats?: number;
+
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  maxSeats?: number;
+
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  minPrice?: number;
+
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  maxPrice?: number;
+
+  @Transform(({ value }) => value === 'true')
+  @IsBoolean()
+  @IsOptional()
+  isAvailable?: boolean;
+
+  // New sorting parameter
+  @IsEnum(['Cheapest', 'Closest', 'Rating'])
+  @IsOptional()
+  sort?: 'Cheapest' | 'Closest' | 'Rating';
+
+  // For location-based sorting (Closest), we need user's location
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  userLat?: number;
+
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  userLng?: number;
+
+  // Keep legacy single parameters for backward compatibility
   @IsEnum(['Micro Car', 'Medium', 'SUV', 'Mini Bus', 'Truck', 'Van'])
   @IsOptional()
   carType?: 'Micro Car' | 'Medium' | 'SUV' | 'Mini Bus' | 'Truck' | 'Van';
@@ -121,27 +228,7 @@ export class CarFilterDto {
   @IsOptional()
   fuelType?: 'Electric' | 'Petrol' | 'Diesel' | 'Hybrid';
 
-  @IsEnum(['Automatic', 'Manual'])
+  @IsString()
   @IsOptional()
-  transmission?: 'Automatic' | 'Manual';
-
-  @IsNumber()
-  @IsOptional()
-  minSeats?: number;
-
-  @IsNumber()
-  @IsOptional()
-  maxSeats?: number;
-
-  @IsNumber()
-  @IsOptional()
-  minPrice?: number;
-
-  @IsNumber()
-  @IsOptional()
-  maxPrice?: number;
-
-  @IsBoolean()
-  @IsOptional()
-  isAvailable?: boolean;
+  make?: string;
 }
