@@ -13,10 +13,10 @@ export class CarBooking {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'date' })
+  @Column({ type: 'timestamp', nullable: true })
   startDate: Date;
 
-  @Column({ type: 'date' })
+  @Column({ type: 'timestamp', nullable: true })
   endDate: Date;
 
   @Column()
