@@ -99,12 +99,6 @@ export class CarsService {
         });
       }
 
-      if (filters.isAvailable !== undefined) {
-        query.andWhere('car.isAvailable = :isAvailable', {
-          isAvailable: filters.isAvailable,
-        });
-      }
-
       // Handle sorting
       if (filters.sort) {
         switch (filters.sort) {
@@ -197,7 +191,6 @@ export class CarsService {
 
   async updateAvailability(id: number, isAvailable: boolean): Promise<Car> {
     const car = await this.findOne(id);
-    car.isAvailable = isAvailable;
     return this.carsRepository.save(car);
   }
 

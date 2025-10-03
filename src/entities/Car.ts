@@ -67,9 +67,6 @@ export class Car {
   @Column()
   seats: number;
 
-  @Column({ default: true })
-  isAvailable: boolean;
-
   @ManyToOne(() => CarOwner, (owner) => owner.cars, { eager: true })
   @JoinColumn({ name: 'ownerId' })
   owner: CarOwner;

@@ -14,6 +14,8 @@ import { Role } from './entities/Role';
 import { Permission } from './entities/Permission';
 import { Car } from './entities/Car';
 import { CarOwner } from './entities/CarOwner';
+import { CarBooking } from './entities/CarBooking';
+import { CarAvailable } from './entities/CarAvaliable';
 
 @Module({
   imports: [
@@ -34,7 +36,15 @@ import { CarOwner } from './entities/CarOwner';
       username: 'postgres',
       password: 'Hyg57aff',
       database: 'renta',
-      entities: [User, Role, Permission, Car, CarOwner],
+      entities: [
+        User,
+        Role,
+        Permission,
+        Car,
+        CarOwner,
+        CarBooking,
+        CarAvailable,
+      ],
       synchronize: true,
     }),
   ],
