@@ -23,8 +23,8 @@ export class CarOwner {
   @Column('decimal', { precision: 11, scale: 8, nullable: true })
   longitude: number;
 
-  @Column({ nullable: true })
-  avatarUrl: string;
+  @Column({ type: 'text', nullable: true })
+  avatarBase64: string;
 
   @Column('decimal', { precision: 3, scale: 2, default: 0 })
   rating: number;

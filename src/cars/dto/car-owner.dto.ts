@@ -7,6 +7,7 @@ import {
   IsEmail,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+import { IsBase64Image } from '../../Utils/base64-image.validator';
 
 export class CreateCarOwnerDto {
   @IsString()
@@ -38,9 +39,9 @@ export class CreateCarOwnerDto {
   @Max(180)
   longitude?: number;
 
-  @IsString()
+  @IsBase64Image()
   @IsOptional()
-  avatarUrl?: string;
+  avatarBase64?: string;
 
   @Type(() => Number)
   @IsNumber()
@@ -87,9 +88,9 @@ export class UpdateCarOwnerDto {
   @Max(180)
   longitude?: number;
 
-  @IsString()
+  @IsBase64Image()
   @IsOptional()
-  avatarUrl?: string;
+  avatarBase64?: string;
 
   @Type(() => Number)
   @IsNumber()

@@ -43,8 +43,8 @@ export class Car {
   @Column('decimal', { precision: 11, scale: 8, nullable: true })
   longitude: number;
 
-  @Column({ nullable: true })
-  imageUrl: string;
+  @Column({ type: 'text', nullable: true })
+  imageBase64: string;
 
   @Column({
     type: 'enum',

@@ -9,6 +9,7 @@ import {
   Max,
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
+import { IsBase64Image } from '../../Utils/base64-image.validator';
 
 // Helper function to transform comma-separated string to array
 const transformStringToArray = ({ value }: { value: string }) => {
@@ -51,9 +52,9 @@ export class CreateCarDto {
   @Max(180)
   longitude?: number;
 
-  @IsString()
+  @IsBase64Image()
   @IsOptional()
-  imageUrl?: string;
+  imageBase64?: string;
 
   @IsEnum(['Micro Car', 'Medium', 'SUV', 'Mini Bus', 'Truck', 'Van'])
   carType: 'Micro Car' | 'Medium' | 'SUV' | 'Mini Bus' | 'Truck' | 'Van';
@@ -115,9 +116,9 @@ export class UpdateCarDto {
   @Max(180)
   longitude?: number;
 
-  @IsString()
+  @IsBase64Image()
   @IsOptional()
-  imageUrl?: string;
+  imageBase64?: string;
 
   @IsEnum(['Micro Car', 'Medium', 'SUV', 'Mini Bus', 'Truck', 'Van'])
   @IsOptional()
