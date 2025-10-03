@@ -46,6 +46,7 @@ import { CarAvailable } from './entities/CarAvaliable';
         CarAvailable,
       ],
       synchronize: true,
+      logging: true,
     }),
   ],
   controllers: [AppController],

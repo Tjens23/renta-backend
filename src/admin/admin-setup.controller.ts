@@ -13,31 +13,39 @@ export class AdminSetupController {
   @Post('initialize')
   async initializeSystem(
     @Body()
-    body: {
-      adminUsername: string;
-      adminPassword: string;
-      adminFirstName: string;
-      adminLastName: string;
+    body?: {
+      adminUsername?: string;
+      adminPassword?: string;
+      adminFirstName?: string;
+      adminLastName?: string;
     },
   ) {
+    // Use default admin credentials if no body provided
+    const adminData = {
+      adminUsername: body?.adminUsername || 'admin',
+      adminPassword: body?.adminPassword || 'admin123',
+      adminFirstName: body?.adminFirstName || 'System',
+      adminLastName: body?.adminLastName || 'Administrator',
+    };
+
     // Initialize roles and permissions
     await this.rolesService.initializeDefaultRolesAndPermissions();
 
     // Check if admin user already exists
     const existingAdmin = await this.usersService.findByUsername(
-      body.adminUsername,
+      adminData.adminUsername,
     );
     if (existingAdmin) {
       return { message: 'Admin user already exists' };
     }
 
     // Create admin user
-    const hashedPassword = await hashPassword(body.adminPassword);
+    const hashedPassword = await hashPassword(adminData.adminPassword);
     const adminUser = await this.usersService.createUser({
-      username: body.adminUsername,
-      password: body.adminPassword, // Will be hashed in the service
-      firstName: body.adminFirstName,
-      lastName: body.adminLastName,
+      username: adminData.adminUsername,
+      password: adminData.adminPassword, // Will be hashed in the service
+      firstName: adminData.adminFirstName,
+      lastName: adminData.adminLastName,
     });
 
     // Assign admin role
