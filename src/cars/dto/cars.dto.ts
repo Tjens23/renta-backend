@@ -72,10 +72,6 @@ export class CreateCarDto {
 
   @IsNumber()
   ownerId: number;
-
-  @IsBoolean()
-  @IsOptional()
-  isAvailable?: boolean;
 }
 
 export class UpdateCarDto {
