@@ -13,7 +13,6 @@ import { User } from './entities/User';
 import { Role } from './entities/Role';
 import { Permission } from './entities/Permission';
 import { Car } from './entities/Car';
-import { CarOwner } from './entities/CarOwner';
 import { CarBooking } from './entities/CarBooking';
 import { CarAvailable } from './entities/CarAvaliable';
 import { GatewayModule } from './gateway/gateway.module';
@@ -37,15 +36,7 @@ import { GatewayModule } from './gateway/gateway.module';
       username: process.env.DB_USERNAME || 'postgres',
       password: process.env.DB_PASSWORD || '',
       database: process.env.DB_DATABASE || 'renta',
-      entities: [
-        User,
-        Role,
-        Permission,
-        Car,
-        CarOwner,
-        CarBooking,
-        CarAvailable,
-      ],
+      entities: [User, Role, Permission, Car, CarBooking, CarAvailable],
       synchronize: true,
       logging: true,
     }),

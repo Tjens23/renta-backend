@@ -4,6 +4,7 @@ import {
   PrimaryGeneratedColumn,
   ManyToMany,
   JoinTable,
+  OneToMany,
 } from 'typeorm';
 import { Role } from './Role';
 
@@ -23,6 +24,34 @@ export class User {
 
   @Column({ nullable: false })
   password: string;
+
+  // Car owner fields - every user is a potential car owner
+  @Column({ nullable: true })
+  email: string;
+
+  @Column({ nullable: true })
+  phone: string;
+
+  @Column({ nullable: true })
+  location: string;
+
+  @Column('decimal', { precision: 10, scale: 8, nullable: true })
+  latitude: number;
+
+  @Column('decimal', { precision: 11, scale: 8, nullable: true })
+  longitude: number;
+
+  @Column({ type: 'text', nullable: true })
+  avatarBase64: string;
+
+  @Column('decimal', { precision: 3, scale: 2, default: 0 })
+  rating: number;
+
+  @Column({ default: 0 })
+  numberOfReviews: number;
+
+  @OneToMany('Car', 'owner')
+  cars: any[];
 
   @ManyToMany(() => Role, { eager: true })
   @JoinTable({

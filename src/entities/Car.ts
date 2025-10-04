@@ -5,7 +5,7 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { CarOwner } from './CarOwner';
+import { User } from './User';
 
 export type CarType =
   | 'Micro Car'
@@ -67,9 +67,9 @@ export class Car {
   @Column()
   seats: number;
 
-  @ManyToOne(() => CarOwner, (owner) => owner.cars, { eager: true })
+  @ManyToOne(() => User, (user) => user.cars, { eager: true })
   @JoinColumn({ name: 'ownerId' })
-  owner: CarOwner;
+  owner: User;
 
   @Column()
   ownerId: number;

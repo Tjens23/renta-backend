@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Car } from '../entities/Car';
-import { CarOwner } from '../entities/CarOwner';
+import { User } from '../entities/User';
 import { CreateCarDto, UpdateCarDto, CarFilterDto } from './dto/cars.dto';
 
 @Injectable()
@@ -10,19 +10,19 @@ export class CarsService {
   constructor(
     @InjectRepository(Car)
     private carsRepository: Repository<Car>,
-    @InjectRepository(CarOwner)
-    private carOwnersRepository: Repository<CarOwner>,
+    @InjectRepository(User)
+    private usersRepository: Repository<User>,
   ) {}
 
   async create(createCarDto: CreateCarDto): Promise<Car> {
-    // Verify owner exists
-    const owner = await this.carOwnersRepository.findOne({
+    // Verify user/owner exists
+    const owner = await this.usersRepository.findOne({
       where: { id: createCarDto.ownerId },
     });
 
     if (!owner) {
       throw new NotFoundException(
-        `Car owner with ID ${createCarDto.ownerId} not found`,
+        `User with ID ${createCarDto.ownerId} not found`,
       );
     }
 
@@ -162,13 +162,13 @@ export class CarsService {
     const car = await this.findOne(id);
 
     if (updateCarDto.ownerId) {
-      const owner = await this.carOwnersRepository.findOne({
+      const owner = await this.usersRepository.findOne({
         where: { id: updateCarDto.ownerId },
       });
 
       if (!owner) {
         throw new NotFoundException(
-          `Car owner with ID ${updateCarDto.ownerId} not found`,
+          `User with ID ${updateCarDto.ownerId} not found`,
         );
       }
     }
