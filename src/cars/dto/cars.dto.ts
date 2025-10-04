@@ -71,7 +71,8 @@ export class CreateCarDto {
   seats: number;
 
   @IsNumber()
-  ownerId: number;
+  @IsOptional()
+  ownerId?: number;
 }
 
 export class UpdateCarDto {

@@ -32,15 +32,6 @@ export class User {
   @Column({ nullable: true })
   phone: string;
 
-  @Column({ nullable: true })
-  location: string;
-
-  @Column('decimal', { precision: 10, scale: 8, nullable: true })
-  latitude: number;
-
-  @Column('decimal', { precision: 11, scale: 8, nullable: true })
-  longitude: number;
-
   @Column({ type: 'text', nullable: true })
   avatarBase64: string;
 

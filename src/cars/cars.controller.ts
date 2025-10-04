@@ -10,18 +10,24 @@ import {
   ParseIntPipe,
   HttpCode,
   HttpStatus,
+  Request,
+  UseGuards,
 } from '@nestjs/common';
 import { CarsService } from './cars.service';
 import { CreateCarDto, UpdateCarDto, CarFilterDto } from './dto/cars.dto';
+import { AuthGuard } from '../auth/auth.guard';
 
 @Controller('cars')
 export class CarsController {
   constructor(private readonly carsService: CarsService) {}
 
   @Post()
+  @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.CREATED)
-  create(@Body() createCarDto: CreateCarDto) {
-    return this.carsService.create(createCarDto);
+  create(@Request() req, @Body() createCarDto: CreateCarDto) {
+    // Extract userId from JWT token (it's stored as 'sub' in the payload)
+    const ownerId = req.user.sub;
+    return this.carsService.create({ ...createCarDto, ownerId });
   }
 
   /**
