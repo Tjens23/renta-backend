@@ -4,8 +4,11 @@ import {
   PrimaryGeneratedColumn,
   ManyToOne,
   JoinColumn,
+  OneToMany,
 } from 'typeorm';
 import { User } from './User';
+import { CarBooking } from './CarBooking';
+import { CarAvailable } from './CarAvaliable';
 
 export type CarType =
   | 'Micro Car'
@@ -73,6 +76,12 @@ export class Car {
 
   @Column()
   ownerId: number;
+
+  @OneToMany(() => CarBooking, booking => booking.car)
+  bookings: CarBooking[];
+
+  @OneToMany(() => CarAvailable, available => available.car)
+  availabilities: CarAvailable[];
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;

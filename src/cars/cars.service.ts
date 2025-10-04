@@ -40,9 +40,29 @@ export class CarsService {
     console.log(filters);
     const query = this.carsRepository
       .createQueryBuilder('car')
-      .leftJoinAndSelect('car.owner', 'owner');
+      .leftJoinAndSelect('car.owner', 'owner')
 
     if (filters) {
+      if (filters.startDate && filters.endDate) {
+        query.leftJoin('car.bookings', 'booking')
+          .where(`
+            booking.id IS NULL
+            OR NOT (
+              booking.startDate <= :endDate AND
+              booking.endDate >= :startDate
+            )
+          `)
+          .setParameters({startDate: filters?.startDate, endDate: filters?.endDate});
+
+        query.leftJoin('car.availabilities', 'availabilities')
+          .where(`
+            (
+              availabilities.startDate <= :endDate AND
+              availabilities.endDate >= :startDate
+            )
+          `);
+      }
+
       // Handle multiple car types or single car type (for backward compatibility)
       if (filters.carTypes && filters.carTypes.length > 0) {
         query.andWhere('car.carType IN (:...carTypes)', {
@@ -163,7 +183,7 @@ export class CarsService {
   async findOne(id: number): Promise<Car> {
     const car = await this.carsRepository.findOne({
       where: { id },
-      relations: ['owner'],
+      relations: ['owner', 'availabilities', 'bookings'],
     });
 
     if (!car) {

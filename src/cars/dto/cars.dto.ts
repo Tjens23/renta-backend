@@ -7,9 +7,11 @@ import {
   IsArray,
   Min,
   Max,
+  IsDateString,
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 import { IsBase64Image } from '../../Utils/base64-image.validator';
+import { Timestamp } from 'typeorm';
 
 // Helper function to transform comma-separated string to array
 const transformStringToArray = ({ value }: { value: string }) => {
@@ -230,4 +232,12 @@ export class CarFilterDto {
   @IsNumber()
   @IsOptional()
   maxDistance?: number
+
+  @IsDateString()
+  @IsOptional()
+  startDate: string;
+
+  @IsDateString()
+  @IsOptional()
+  endDate: string;
 }
