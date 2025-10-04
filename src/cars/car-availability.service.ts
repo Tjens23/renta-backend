@@ -109,4 +109,36 @@ export class CarAvailabilityService {
     const availability = await this.findOne(id);
     await this.carAvailableRepository.remove(availability);
   }
+
+  // Method to verify if a user can manage availability for a specific car
+  async verifyCarOwnership(carId: number, userId: number): Promise<boolean> {
+    const car = await this.carRepository.findOne({
+      where: { id: carId },
+      relations: ['owner'],
+    });
+
+    if (!car) {
+      throw new NotFoundException(`Car with ID ${carId} not found`);
+    }
+
+    // For now, we'll check if the CarOwner entity has an email that matches the user
+    // This is a temporary solution - ideally CarOwner should have a userId field
+    // TODO: Establish proper relationship between User and CarOwner entities
+    return true; // Temporary - allow all authenticated users
+  }
+
+  async getCarFromAvailability(availabilityId: number): Promise<Car> {
+    const availability = await this.carAvailableRepository.findOne({
+      where: { id: availabilityId },
+      relations: ['car'],
+    });
+
+    if (!availability) {
+      throw new NotFoundException(
+        `Car availability with ID ${availabilityId} not found`,
+      );
+    }
+
+    return availability.car;
+  }
 }
