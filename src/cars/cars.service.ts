@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Car } from '../entities/Car';
 import { User } from '../entities/User';
+import { CarAvailable } from '../entities/CarAvaliable';
+import { CarBooking } from '../entities/CarBooking';
 import { CreateCarDto, UpdateCarDto, CarFilterDto } from './dto/cars.dto';
 
 @Injectable()
@@ -12,6 +14,10 @@ export class CarsService {
     private carsRepository: Repository<Car>,
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    @InjectRepository(CarAvailable)
+    private carAvailableRepository: Repository<CarAvailable>,
+    @InjectRepository(CarBooking)
+    private carBookingRepository: Repository<CarBooking>,
   ) {}
 
   async create(createCarDto: CreateCarDto): Promise<Car> {
@@ -95,13 +101,11 @@ export class CarsService {
       }
 
       if (filters.maxDistance) {
-        query
-          .setParameters({
-            userLat: filters.userLat,
-            userLng: filters.userLng,
-            maxDistance: filters.maxDistance
-          })
-          .andWhere(`
+        query.setParameters({
+          userLat: filters.userLat,
+          userLng: filters.userLng,
+          maxDistance: filters.maxDistance,
+        }).andWhere(`
             (6371 * acos(
               cos(radians(:userLat)) * cos(radians(car.latitude)) * 
               cos(radians(car.longitude) - radians(:userLng)) + 
@@ -190,6 +194,14 @@ export class CarsService {
 
   async remove(id: number): Promise<void> {
     const car = await this.findOne(id);
+
+    // Delete all related car availability records first
+    await this.carAvailableRepository.delete({ carId: id });
+
+    // Delete all related car booking records
+    await this.carBookingRepository.delete({ carId: id });
+
+    // Now safe to delete the car
     await this.carsRepository.remove(car);
   }
 
