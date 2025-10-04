@@ -16,6 +16,7 @@ import { Car } from './entities/Car';
 import { CarOwner } from './entities/CarOwner';
 import { CarBooking } from './entities/CarBooking';
 import { CarAvailable } from './entities/CarAvaliable';
+import { GatewayModule } from './gateway/gateway.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { CarAvailable } from './entities/CarAvaliable';
       synchronize: true,
       logging: true,
     }),
+    GatewayModule,
   ],
   controllers: [AppController],
   providers: [AppService],
