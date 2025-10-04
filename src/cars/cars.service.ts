@@ -44,23 +44,25 @@ export class CarsService {
 
     if (filters) {
       if (filters.startDate && filters.endDate) {
-        query.leftJoin('car.bookings', 'booking')
-          .where(`
-            booking.id IS NULL
-            OR NOT (
-              booking.startDate <= :endDate AND
-              booking.endDate >= :startDate
-            )
+        query
+          .innerJoin('car.availabilities', 'availabilities', `
+            availabilities.startDate <= :startDate
+            AND availabilities.endDate >= :endDate
           `)
-          .setParameters({startDate: filters?.startDate, endDate: filters?.endDate});
+          .andWhere(qb => {
+            const subQuery = qb.subQuery()
+              .select('booking.carId')
+              .from('car_booking', 'booking')
+              .where('booking.startDate <= :endDate')
+              .andWhere('booking.endDate >= :startDate')
+              .getQuery();
 
-        query.leftJoin('car.availabilities', 'availabilities')
-          .where(`
-            (
-              availabilities.startDate <= :endDate AND
-              availabilities.endDate >= :startDate
-            )
-          `);
+            return `car.id NOT IN ${subQuery}`;
+          })
+          .setParameters({
+            startDate: filters.startDate,
+            endDate: filters.endDate,
+          });
       }
 
       // Handle multiple car types or single car type (for backward compatibility)
