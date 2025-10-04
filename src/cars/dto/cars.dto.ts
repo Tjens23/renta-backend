@@ -145,10 +145,6 @@ export class UpdateCarDto {
 }
 
 export class CarFilterDto {
-  @IsString()
-  @IsOptional()
-  location?: string;
-
   // Support for multiple car types
   @Transform(transformStringToArray)
   @IsArray()
@@ -229,4 +225,9 @@ export class CarFilterDto {
   @IsString()
   @IsOptional()
   make?: string;
+
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  maxDistance?: number
 }

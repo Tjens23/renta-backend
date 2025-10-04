@@ -31,17 +31,12 @@ export class CarsService {
   }
 
   async findAll(filters?: CarFilterDto): Promise<Car[]> {
+    console.log(filters);
     const query = this.carsRepository
       .createQueryBuilder('car')
       .leftJoinAndSelect('car.owner', 'owner');
 
     if (filters) {
-      if (filters.location) {
-        query.andWhere('car.location ILIKE :location', {
-          location: `%${filters.location}%`,
-        });
-      }
-
       // Handle multiple car types or single car type (for backward compatibility)
       if (filters.carTypes && filters.carTypes.length > 0) {
         query.andWhere('car.carType IN (:...carTypes)', {
@@ -97,6 +92,22 @@ export class CarsService {
         query.andWhere('car.pricePerKm <= :maxPrice', {
           maxPrice: filters.maxPrice,
         });
+      }
+
+      if (filters.maxDistance) {
+        query
+          .setParameters({
+            userLat: filters.userLat,
+            userLng: filters.userLng,
+            maxDistance: filters.maxDistance
+          })
+          .andWhere(`
+            (6371 * acos(
+              cos(radians(:userLat)) * cos(radians(car.latitude)) * 
+              cos(radians(car.longitude) - radians(:userLng)) + 
+              sin(radians(:userLat)) * sin(radians(car.latitude))
+            )) < :maxDistance
+          `);
       }
 
       // Handle sorting
