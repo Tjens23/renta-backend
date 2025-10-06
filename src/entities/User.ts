@@ -5,8 +5,10 @@ import {
   ManyToMany,
   JoinTable,
   OneToMany,
+  OneToOne,
 } from 'typeorm';
 import { Role } from './Role';
+import { Review } from './Review';
 
 @Entity()
 export class User {
@@ -61,4 +63,7 @@ export class User {
     onUpdate: 'CURRENT_TIMESTAMP',
   })
   updatedAt: Date;
+
+  @OneToMany(() => Review, (review) => review.user, { cascade: true })
+  reviews: Review[];
 }

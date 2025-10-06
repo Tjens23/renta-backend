@@ -40,7 +40,6 @@ export class CarBookingService {
       throw new NotFoundException(`User with ID ${userId} not found`);
     }
 
-    // Verify car exists and is available
     const car = await this.carRepository.findOne({
       where: { id: createCarBookingDto.carId },
     });
@@ -51,7 +50,6 @@ export class CarBookingService {
       );
     }
 
-    // Validate dates
     const startDate = new Date(createCarBookingDto.startDate);
     const endDate = new Date(createCarBookingDto.endDate);
 
@@ -63,7 +61,6 @@ export class CarBookingService {
       throw new BadRequestException('Start date cannot be in the past');
     }
 
-    // Check car availability using CarAvailable logic (frontend: filter.fromDate! < b.to && b.from < filter.toDate!)
     const isCarAvailable = await this.checkCarAvailability(
       createCarBookingDto.carId,
       startDate,
@@ -88,21 +85,21 @@ export class CarBookingService {
 
   async findAll(): Promise<CarBooking[]> {
     return this.carBookingRepository.find({
-      relations: ['whoBooked', 'car'],
+      relations: ['car'],
     });
   }
 
   async findByUser(userId: number): Promise<CarBooking[]> {
     return this.carBookingRepository.find({
       where: { whoBookedId: userId },
-      relations: ['whoBooked', 'car'],
+      relations: ['car'],
     });
   }
 
   async findOne(id: number): Promise<CarBooking> {
     const booking = await this.carBookingRepository.findOne({
       where: { id },
-      relations: ['whoBooked', 'car'],
+      relations: ['car'],
     });
 
     if (!booking) {
@@ -203,6 +200,9 @@ export class CarBookingService {
       return false; // Car is already booked
     }
 
+    return true;
+
+    /*
     // Check against car availability periods (CarAvailable table)
     // Car must have an availability period that covers the requested dates
     const availabilityPeriod = await this.carAvailableRepository
@@ -214,6 +214,6 @@ export class CarBookingService {
       .andWhere('available.endDate >= :toDate', { toDate: requestedEndDate })
       .getOne();
 
-    return !!availabilityPeriod; // Car is available if we found a matching availability period
+    return !!availabilityPeriod; // Car is available if we found a matching availability period*/
   }
 }

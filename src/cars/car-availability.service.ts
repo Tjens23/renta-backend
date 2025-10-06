@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -113,12 +114,12 @@ export class CarAvailabilityService {
   // Method to verify if a user can manage availability for a specific car
   async verifyCarOwnership(carId: number, userId: number): Promise<boolean> {
     const car = await this.carRepository.findOne({
-      where: { id: carId },
+      where: { id: carId, ownerId: userId },
       relations: ['owner'],
     });
 
     if (!car) {
-      throw new NotFoundException(`Car with ID ${carId} not found`);
+      throw new UnauthorizedException(`Unauthorized`);
     }
 
     // For now, we'll check if the CarOwner entity has an email that matches the user

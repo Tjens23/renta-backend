@@ -1,8 +1,14 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Car } from '../entities/Car';
 import { User } from '../entities/User';
+import { CarAvailable } from '../entities/CarAvaliable';
+import { CarBooking } from '../entities/CarBooking';
 import { CreateCarDto, UpdateCarDto, CarFilterDto } from './dto/cars.dto';
 
 @Injectable()
@@ -12,10 +18,13 @@ export class CarsService {
     private carsRepository: Repository<Car>,
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    @InjectRepository(CarAvailable)
+    private carAvailableRepository: Repository<CarAvailable>,
+    @InjectRepository(CarBooking)
+    private carBookingRepository: Repository<CarBooking>,
   ) {}
 
   async create(createCarDto: CreateCarDto): Promise<Car> {
-    // Verify user/owner exists
     const owner = await this.usersRepository.findOne({
       where: { id: createCarDto.ownerId },
     });
@@ -31,15 +40,29 @@ export class CarsService {
   }
 
   async findAll(filters?: CarFilterDto): Promise<Car[]> {
+    console.log(filters);
     const query = this.carsRepository
       .createQueryBuilder('car')
       .leftJoinAndSelect('car.owner', 'owner');
 
     if (filters) {
-      if (filters.location) {
-        query.andWhere('car.location ILIKE :location', {
-          location: `%${filters.location}%`,
-        });
+      if (filters.startDate && filters.endDate) {
+        query
+          .andWhere((qb) => {
+            const subQuery = qb
+              .subQuery()
+              .select('booking.carId')
+              .from('car_booking', 'booking')
+              .where('booking.startDate <= :endDate')
+              .andWhere('booking.endDate >= :startDate')
+              .getQuery();
+
+            return `car.id NOT IN ${subQuery}`;
+          })
+          .setParameters({
+            startDate: new Date(filters.startDate),
+            endDate: new Date(filters.endDate),
+          });
       }
 
       // Handle multiple car types or single car type (for backward compatibility)
@@ -99,6 +122,20 @@ export class CarsService {
         });
       }
 
+      if (filters.maxDistance) {
+        query.setParameters({
+          userLat: filters.userLat,
+          userLng: filters.userLng,
+          maxDistance: filters.maxDistance,
+        }).andWhere(`
+            (6371 * acos(
+              cos(radians(:userLat)) * cos(radians(car.latitude)) * 
+              cos(radians(car.longitude) - radians(:userLng)) + 
+              sin(radians(:userLat)) * sin(radians(car.latitude))
+            )) < :maxDistance
+          `);
+      }
+
       // Handle sorting
       if (filters.sort) {
         switch (filters.sort) {
@@ -107,29 +144,26 @@ export class CarsService {
             break;
           case 'Rating':
             // Add rating field to Car entity if not exists, for now order by creation date
-            query.orderBy('car.createdAt', 'DESC');
+            query.orderBy('owner.rating', 'DESC');
             break;
           case 'Closest':
             // For closest sorting, we need user's location
             if (filters.userLat && filters.userLng) {
               // Using Haversine formula for distance calculation
               query
+                .addSelect(`
+                  (6371 * acos(
+                    cos(radians(:userLat)) * cos(radians(car.latitude)) * 
+                    cos(radians(car.longitude) - radians(:userLng)) + 
+                    sin(radians(:userLat)) * sin(radians(car.latitude))
+                  ))
+                `, 'distance') // 👈 give it an alias
                 .setParameters({
                   userLat: filters.userLat,
                   userLng: filters.userLng,
                 })
-                .addSelect(
-                  `
-                (6371 * acos(
-                  cos(radians(:userLat)) * cos(radians(car.latitude)) * 
-                  cos(radians(car.longitude) - radians(:userLng)) + 
-                  sin(radians(:userLat)) * sin(radians(car.latitude))
-                )) AS distance
-              `,
-                )
                 .orderBy('distance', 'ASC');
             } else {
-              // Fallback to default ordering if no user location provided
               query.orderBy('car.createdAt', 'DESC');
             }
             break;
@@ -137,8 +171,17 @@ export class CarsService {
             query.orderBy('car.createdAt', 'DESC');
         }
       } else {
-        // Default ordering
         query.orderBy('car.createdAt', 'DESC');
+      }
+
+      if (filters.page) {
+        const page = filters.page && filters.page > 0 ? filters.page : 1;
+        const pageSize = 10;
+
+        query.skip((page - 1) * pageSize).take(pageSize);
+      } else {
+        // Default pagination if no filters provided
+        query.skip(0).take(10);
       }
     }
 
@@ -148,7 +191,7 @@ export class CarsService {
   async findOne(id: number): Promise<Car> {
     const car = await this.carsRepository.findOne({
       where: { id },
-      relations: ['owner'],
+      relations: ['owner', 'availabilities', 'bookings'],
     });
 
     if (!car) {
@@ -158,8 +201,15 @@ export class CarsService {
     return car;
   }
 
-  async update(id: number, updateCarDto: UpdateCarDto): Promise<Car> {
+  async update(
+    id: number,
+    updateCarDto: UpdateCarDto,
+    userId: number,
+  ): Promise<Car> {
     const car = await this.findOne(id);
+    if (car.ownerId !== userId) {
+      throw new ForbiddenException('You can only update your own cars');
+    }
 
     if (updateCarDto.ownerId) {
       const owner = await this.usersRepository.findOne({
@@ -177,8 +227,14 @@ export class CarsService {
     return this.carsRepository.save(car);
   }
 
-  async remove(id: number): Promise<void> {
+  async remove(id: number, userId: number): Promise<void> {
     const car = await this.findOne(id);
+
+    if (car.ownerId !== userId) {
+      throw new ForbiddenException('You can only delete your own cars');
+    }
+    await this.carAvailableRepository.delete({ carId: id });
+    await this.carBookingRepository.delete({ carId: id });
     await this.carsRepository.remove(car);
   }
 
@@ -189,8 +245,18 @@ export class CarsService {
     });
   }
 
-  async updateAvailability(id: number, isAvailable: boolean): Promise<Car> {
+  async updateAvailability(
+    id: number,
+    isAvailable: boolean,
+    userId: number,
+  ): Promise<Car> {
     const car = await this.findOne(id);
+    if (car.ownerId !== userId) {
+      throw new ForbiddenException(
+        'You can only update availability for your own cars',
+      );
+    }
+
     return this.carsRepository.save(car);
   }
 

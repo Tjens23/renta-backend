@@ -25,25 +25,10 @@ export class CarsController {
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.CREATED)
   create(@Request() req, @Body() createCarDto: CreateCarDto) {
-    // Extract userId from JWT token (it's stored as 'sub' in the payload)
     const ownerId = req.user.sub;
     return this.carsService.create({ ...createCarDto, ownerId });
   }
 
-  /**
-   * Get all cars with optional filtering and sorting
-   * Supports multiple values for carTypes, makes, and fuelTypes using comma-separated strings
-   *
-   * Query parameters:
-   * - carTypes: Comma-separated list of car types (e.g., "SUV,Van,Truck")
-   * - makes: Comma-separated list of car makes (e.g., "Toyota,BMW,Audi")
-   * - fuelTypes: Comma-separated list of fuel types (e.g., "Electric,Hybrid")
-   * - sort: Sorting option - "Cheapest", "Closest", or "Rating"
-   * - userLat/userLng: User's coordinates for "Closest" sorting
-   *
-   * Legacy single-value parameters are still supported for backward compatibility:
-   * - carType, make, fuelType
-   */
   @Get()
   findAll(@Query() filters: CarFilterDto) {
     return this.carsService.findAll(filters);
@@ -65,24 +50,32 @@ export class CarsController {
   }
 
   @Patch(':id')
-  update(
+  @UseGuards(AuthGuard)
+  async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateCarDto: UpdateCarDto,
+    @Request() req,
   ) {
-    return this.carsService.update(id, updateCarDto);
+    const userId = req.user.sub;
+    return this.carsService.update(id, updateCarDto, userId);
   }
 
   @Patch(':id/availability')
-  updateAvailability(
+  @UseGuards(AuthGuard)
+  async updateAvailability(
     @Param('id', ParseIntPipe) id: number,
     @Body('isAvailable') isAvailable: boolean,
+    @Request() req,
   ) {
-    return this.carsService.updateAvailability(id, isAvailable);
+    const userId = req.user.sub;
+    return this.carsService.updateAvailability(id, isAvailable, userId);
   }
 
   @Delete(':id')
+  @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.carsService.remove(id);
+  async remove(@Param('id', ParseIntPipe) id: number, @Request() req) {
+    const userId = req.user.sub;
+    return this.carsService.remove(id, userId);
   }
 }
